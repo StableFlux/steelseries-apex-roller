@@ -10,6 +10,11 @@ Remap the SteelSeries Apex Pro Gen 3 volume roller and media button to control
 SteelSeries Sonar channels instead of Windows master volume — with live UI
 sync, OLED feedback, and no driver hacks.
 
+<p align="center">
+  If this app is useful to you, a coffee is always appreciated ❤<br><br>
+  <a href="https://buymeacoffee.com/stableflux"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="200"/></a>
+</p>
+
 <!--
 Screenshot placeholder: add an image at docs/screenshot.png showing the
 keyboard OLED + the Sonar GG window with the matching slider, and replace
