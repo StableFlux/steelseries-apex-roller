@@ -148,6 +148,16 @@ building each layer — useful for debugging.
 - **Security reports** → see [SECURITY.md](SECURITY.md)
 - **Changes per release** → [CHANGELOG.md](CHANGELOG.md)
 
+## Support the project
+
+Apex Roller is free and open source. If it saved you from having your game,
+chat, and Spotify volumes all glued to Windows master, a coffee is always
+appreciated — it keeps the updates coming.
+
+<p align="center">
+  <a href="https://buymeacoffee.com/stableflux"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="200"/></a>
+</p>
+
 ## License
 
 [MIT](LICENSE) © StableFlux
