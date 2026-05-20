@@ -6,7 +6,26 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## [0.1.1] - 2026-05-20
+## [0.1.2] - 2026-05-20
+
+### Changed
+- **OLED releases back to the keyboard's default view 3 seconds after the
+  last roller/cycle event.** Previously the active channel + level frame
+  stayed pinned to the OLED indefinitely (because a 10s heartbeat was
+  keeping our binding alive). The heartbeat is removed; on every
+  interaction we restart a 3-second timer that calls GameSense's
+  `/stop_game`, which releases screen ownership. The next interaction
+  auto-resumes via `/game_event` — no re-binding needed.
+- **Cleaner volume bar:** `[=====---] 67%` instead of `####...... 67%`.
+  Bar shrunk to 8 segments so line 2 stays at 15 characters and doesn't
+  clip on the right edge of the Apex Pro OLED.
+- Added `icon_id: 16` (GameSense volume icon) at event binding. The
+  Apex Pro Gen 3 OLED with current firmware appears to ignore this hint
+  in the screened handler -- keeping it in place is harmless and may
+  light up on other Apex Pro variants.
+
+[Unreleased]: https://github.com/StableFlux/steelseries-apex-roller/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/StableFlux/steelseries-apex-roller/releases/tag/v0.1.2
 
 ### Added
 - Tray menu **Check for Updates** — opens the Releases page in your default
@@ -42,6 +61,5 @@ this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   the GG sliders only redraw next time you click into the panel.
 - No code signing yet — first run may show a Windows SmartScreen warning.
 
-[Unreleased]: https://github.com/StableFlux/steelseries-apex-roller/compare/v0.1.1...HEAD
 [0.1.1]: https://github.com/StableFlux/steelseries-apex-roller/releases/tag/v0.1.1
 [0.1.0]: https://github.com/StableFlux/steelseries-apex-roller/releases/tag/v0.1.0

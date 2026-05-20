@@ -55,6 +55,9 @@ class GameSense:
             "game": self.game,
             "event": self.event,
             "value_optional": True,
+            # GameSense built-in icon shown next to the text on supported
+            # devices. 16 = volume. Harmless if the device ignores it.
+            "icon_id": 16,
             "handlers": [{
                 "device-type": "screened",
                 "mode": "screen",
@@ -68,6 +71,15 @@ class GameSense:
             }],
         })
         self._registered = True
+
+    def stop_game(self) -> None:
+        """Release screen ownership so the keyboard reverts to its default view.
+        The next /game_event auto-resumes the game (registration + bindings
+        persist), so callers don't need to re-register."""
+        try:
+            self._post("/stop_game", {"game": self.game})
+        except Exception as e:
+            log.warning("stop_game failed: %s", e)
 
     def reconnect(self) -> None:
         """Re-read coreProps for a fresh GameSense address, then re-register."""

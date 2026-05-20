@@ -30,6 +30,10 @@ CHANNELS: list[tuple[str, str]] = [
     ("aux", "Aux"),
 ]
 VOLUME_STEP = 0.02  # per roller click
+OLED_RELEASE_AFTER_S = 3.0  # release the OLED back to the default view after N seconds of inactivity
+# Bar width tuned so line 2 stays under ~15 chars total (the Apex Pro OLED
+# clips beyond that with the default GameSense font): "[========] 100%" = 15.
+BAR_WIDTH = 8
 
 
 @dataclass(frozen=True)
@@ -61,10 +65,12 @@ class App:
         self.sonar = Sonar(props.gg_encrypted_address)
         self.gs = GameSense(props.gamesense_address)
         self.gs.register()
-        self.gs.start_heartbeat()
+        # Deliberately NOT starting heartbeat: we want GameSense to release the
+        # OLED back to its default view shortly after we stop sending events.
         # GG /eventing client used to make the Sonar UI sliders update live.
         # Live UI sync currently only wired up for streamer-mode actions.
         self.gg_ws = GGEventClient(props.gg_encrypted_address)
+        self._release_timer: threading.Timer | None = None
 
         self.positions = build_positions(
             self.sonar.mode,
@@ -171,14 +177,37 @@ class App:
         self._push_oled()
         self._notify()
 
-    def _push_oled(self) -> None:
-        pct = int(round(self.volume * 100))
-        bars = max(0, min(10, round(self.volume * 10)))
-        line2 = ("#" * bars) + ("." * (10 - bars)) + f" {pct:>3d}%"
+    def show_status(self, line1: str, line2: str) -> None:
+        """Show arbitrary text on the OLED and start the auto-release timer.
+        Use this for one-off status displays (e.g. 'Paused')."""
         try:
-            self.gs.show(self.position.label, line2)
+            self.gs.show(line1, line2)
         except Exception:
             log.exception("OLED push failed")
+        self._schedule_oled_release()
+
+    def _push_oled(self) -> None:
+        pct = int(round(self.volume * 100))
+        filled = max(0, min(BAR_WIDTH, round(self.volume * BAR_WIDTH)))
+        bar = ("=" * filled) + ("-" * (BAR_WIDTH - filled))
+        line2 = f"[{bar}] {pct:>3d}%"
+        self.show_status(self.position.label, line2)
+
+    def _schedule_oled_release(self) -> None:
+        """Restart the timer that releases the OLED back to default view."""
+        if self._release_timer is not None:
+            self._release_timer.cancel()
+        t = threading.Timer(OLED_RELEASE_AFTER_S, self._release_oled)
+        t.daemon = True
+        t.name = "oled-release"
+        self._release_timer = t
+        t.start()
+
+    def _release_oled(self) -> None:
+        try:
+            self.gs.stop_game()
+        except Exception:
+            log.exception("OLED release failed")
 
     # --- lifecycle -----------------------------------------------------------
     def run(self) -> None:
@@ -189,6 +218,8 @@ class App:
 
     def shutdown(self) -> None:
         log.info("shutdown requested")
+        if self._release_timer is not None:
+            self._release_timer.cancel()
         self.hook.stop()
         self.gs.shutdown()
         self.gg_ws.close()

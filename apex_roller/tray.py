@@ -109,10 +109,7 @@ class Tray:
         self.app.hook.paused = not self.app.hook.paused
         log.info("paused=%s", self.app.hook.paused)
         if self.app.hook.paused:
-            try:
-                self.app.gs.show("Apex Roller", "    Paused    ")
-            except Exception:
-                log.exception("OLED paused notice failed")
+            self.app.show_status("Apex Roller", "    Paused    ")
         else:
             self.app._push_oled()
         self.refresh_tooltip()
