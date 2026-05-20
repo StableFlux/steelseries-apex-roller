@@ -1,0 +1,53 @@
+name: Bug report
+description: Something's not working
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What did you do, and what did you see?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Apex Roller version
+      description: From the About menu or the release zip filename (e.g. v0.1.1).
+      placeholder: v0.1.1
+    validations:
+      required: true
+  - type: input
+    id: gg-version
+    attributes:
+      label: SteelSeries GG version
+      description: Settings > About in GG.
+    validations:
+      required: false
+  - type: dropdown
+    id: sonar-mode
+    attributes:
+      label: Sonar mode
+      options:
+        - Streamer
+        - Classic
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log excerpt
+      description: |
+        Open the tray menu > **Open Logs Folder**, find `apex-roller.log`, and
+        paste the relevant tail (last ~30 lines around the issue). Sensitive
+        data is not logged, but feel free to redact.
+      render: text
+    validations:
+      required: false

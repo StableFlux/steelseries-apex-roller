@@ -1,0 +1,71 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (e.g. v0.1.1). Leave blank for current SHA.'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build apex-roller.exe
+        run: python build.py
+
+      - name: Stage release files
+        shell: bash
+        run: |
+          mkdir -p release/apex-roller
+          cp dist/apex-roller.exe release/apex-roller/
+          cp README.md LICENSE release/apex-roller/
+
+      - name: Determine version label
+        id: ver
+        shell: bash
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "label=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "label=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create zip
+        shell: pwsh
+        run: |
+          $name = "apex-roller-${{ steps.ver.outputs.label }}-windows-x64.zip"
+          Compress-Archive -Path release/apex-roller -DestinationPath "release/$name"
+          "ZIP_PATH=release/$name" | Out-File -Append $env:GITHUB_ENV
+          "ZIP_NAME=$name" | Out-File -Append $env:GITHUB_ENV
+
+      - name: Upload zip as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ZIP_NAME }}
+          path: ${{ env.ZIP_PATH }}
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release (tag pushes only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_PATH }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true

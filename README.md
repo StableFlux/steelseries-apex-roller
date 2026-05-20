@@ -1,8 +1,23 @@
 # Apex Roller
 
+[![Latest release](https://img.shields.io/github/v/release/StableFlux/steelseries-apex-roller?label=release&color=blue)](https://github.com/StableFlux/steelseries-apex-roller/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/StableFlux/steelseries-apex-roller/total?color=brightgreen)](https://github.com/StableFlux/steelseries-apex-roller/releases)
+[![License: MIT](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
+[![Platform: Windows](https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4)](#requirements)
+[![Build](https://github.com/StableFlux/steelseries-apex-roller/actions/workflows/release.yml/badge.svg)](https://github.com/StableFlux/steelseries-apex-roller/actions/workflows/release.yml)
+
 Remap the SteelSeries Apex Pro Gen 3 volume roller and media button to control
 SteelSeries Sonar channels instead of Windows master volume — with live UI
 sync, OLED feedback, and no driver hacks.
+
+<!--
+Screenshot placeholder: add an image at docs/screenshot.png showing the
+keyboard OLED + the Sonar GG window with the matching slider, and replace
+this comment with:
+
+![Apex Roller in action](docs/screenshot.png)
+-->
+
 
 ## What it does
 
@@ -60,6 +75,8 @@ config live in `%LocalAppData%\ApexRoller\`.
 - **Include Streaming sliders** — each channel becomes two cycle positions
   (monitoring, then streaming). Off by default.
 - **Run at Startup** — toggles a shortcut in your per-user Startup folder.
+- **Check for Updates** — opens the Releases page so you can grab a newer
+  build if there is one.
 - **Open Logs Folder** — Explorer to `%LocalAppData%\ApexRoller\logs\`.
 - **Quit** — exit; OLED returns to its default content.
 
@@ -122,6 +139,13 @@ python build.py
 
 The `probes/` directory contains the small validation scripts used while
 building each layer — useful for debugging.
+
+## Community
+
+- **Questions / usage help** → [Discussions](https://github.com/StableFlux/steelseries-apex-roller/discussions)
+- **Bugs** → [open an issue](https://github.com/StableFlux/steelseries-apex-roller/issues/new/choose)
+- **Security reports** → see [SECURITY.md](SECURITY.md)
+- **Changes per release** → [CHANGELOG.md](CHANGELOG.md)
 
 ## License
 

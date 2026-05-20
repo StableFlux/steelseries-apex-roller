@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question / discussion
+    url: https://github.com/StableFlux/steelseries-apex-roller/discussions
+    about: For usage questions, please use Discussions rather than filing an issue.

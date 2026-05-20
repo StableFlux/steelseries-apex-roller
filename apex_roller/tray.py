@@ -10,12 +10,13 @@ import logging
 import os
 import subprocess
 import sys
+import webbrowser
 from pathlib import Path
 
 import pystray
 from PIL import Image, ImageDraw, ImageFont
 
-from . import paths, startup
+from . import RELEASES_URL, paths, startup
 from .app import App
 
 log = logging.getLogger(__name__)
@@ -89,6 +90,7 @@ class Tray:
                 checked=lambda _: startup.is_installed(),
                 enabled=lambda _: startup.can_install_startup(),
             ),
+            pystray.MenuItem("Check for Updates", self._check_updates),
             pystray.MenuItem("Open Logs Folder", self._open_logs),
             pystray.MenuItem("About", self._about),
             pystray.Menu.SEPARATOR,
@@ -132,10 +134,20 @@ class Tray:
         except Exception:
             log.exception("could not open logs folder via explorer.exe")
 
+    def _check_updates(self, *_) -> None:
+        log.info("opening releases page: %s", RELEASES_URL)
+        try:
+            webbrowser.open(RELEASES_URL)
+        except Exception:
+            log.exception("could not open releases page")
+
     def _about(self, *_) -> None:
-        # Lightweight: print to log; replace with a real dialog later.
-        from . import __version__
-        log.info("Apex Roller v%s - https://github.com/ (TBD)", __version__)
+        from . import PROJECT_URL, __version__
+        log.info("Apex Roller v%s - %s", __version__, PROJECT_URL)
+        try:
+            webbrowser.open(PROJECT_URL)
+        except Exception:
+            log.exception("could not open project page")
 
     def _quit(self, icon, item) -> None:
         log.info("tray quit")
