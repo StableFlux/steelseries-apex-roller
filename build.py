@@ -1,6 +1,7 @@
 """Build apex-roller.exe via PyInstaller. Run from project root: `python build.py`."""
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 import sys
@@ -18,11 +19,16 @@ def main() -> int:
     for s in ROOT.glob("*.spec"):
         s.unlink()
 
+    icon = ROOT / "apex_roller" / "assets" / "apex-roller.ico"
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--onefile",
         "--noconsole",
         "--name", "apex-roller",
+        "--icon", str(icon),
+        # Bundle the .ico so tray.py can load it at runtime (PyInstaller --onefile
+        # extracts data files into sys._MEIPASS at startup).
+        "--add-data", f"{icon}{os.pathsep}apex_roller/assets",
         "--distpath", str(ROOT / "dist"),
         "--workpath", str(ROOT / "build"),
         "--specpath", str(ROOT),

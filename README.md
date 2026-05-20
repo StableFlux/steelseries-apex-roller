@@ -56,15 +56,16 @@ Audio engine, OLED, and the Sonar GG visual sliders all stay in sync.
 
 ## Install
 
-1. Grab `apex-roller.zip` from the
+1. Grab `apex-roller-setup-vX.Y.Z.exe` from the
    [Releases](https://github.com/StableFlux/steelseries-apex-roller/releases) page.
-2. Extract anywhere (e.g. `Documents\ApexRoller\`).
-3. Double-click `apex-roller.exe`. An "AR" icon appears in the system tray.
-4. Right-click the tray icon → **Run at Startup** to launch it automatically
-   on Windows login.
+2. Run it (UAC prompt — the installer needs admin to write to Program Files).
+   Tick **Launch Apex Roller automatically at Windows startup** in the wizard
+   if you want it on at login (recommended).
+3. The Apex Roller tray icon appears in the system tray. You're done.
 
-That's it. No admin, no driver install, no service registration. Logs and
-config live in `%LocalAppData%\ApexRoller\`.
+Uninstall any time via **Settings > Apps > Installed apps > Apex Roller > Uninstall**.
+
+Per-user config and logs live in `%LocalAppData%\ApexRoller\`.
 
 ## Tray menu
 

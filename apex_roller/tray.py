@@ -14,7 +14,7 @@ import webbrowser
 from pathlib import Path
 
 import pystray
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 from . import RELEASES_URL, paths, startup
 from .app import App
@@ -22,21 +22,16 @@ from .app import App
 log = logging.getLogger(__name__)
 
 
-def _make_icon_image(size: int = 64) -> Image.Image:
-    img = Image.new("RGBA", (size, size), (24, 28, 40, 255))
-    draw = ImageDraw.Draw(img)
-    try:
-        font = ImageFont.truetype("arial.ttf", int(size * 0.55))
-    except OSError:
-        font = ImageFont.load_default()
-    text = "AR"
-    bbox = draw.textbbox((0, 0), text, font=font)
-    tw = bbox[2] - bbox[0]
-    th = bbox[3] - bbox[1]
-    x = (size - tw) / 2 - bbox[0]
-    y = (size - th) / 2 - bbox[1]
-    draw.text((x, y), text, fill=(220, 235, 255, 255), font=font)
-    return img
+def _icon_path() -> Path:
+    """Locate the bundled .ico file in both frozen and source contexts."""
+    if getattr(sys, "frozen", False):
+        # PyInstaller --onefile extracts data files to sys._MEIPASS.
+        return Path(sys._MEIPASS) / "apex_roller" / "assets" / "apex-roller.ico"  # type: ignore[attr-defined]
+    return Path(__file__).resolve().parent / "assets" / "apex-roller.ico"
+
+
+def _load_icon_image() -> Image.Image:
+    return Image.open(_icon_path())
 
 
 class Tray:
@@ -45,7 +40,7 @@ class Tray:
         app.on_state_change = self.refresh_tooltip
         self.icon = pystray.Icon(
             "apex_roller",
-            icon=_make_icon_image(),
+            icon=_load_icon_image(),
             title=self._tooltip_text(),
             menu=self._build_menu(),
         )
