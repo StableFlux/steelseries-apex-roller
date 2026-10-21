@@ -63,11 +63,21 @@ class Tray:
             pystray.MenuItem(lambda _: self._tooltip_text(), None, enabled=False),
             pystray.Menu.SEPARATOR,
             pystray.MenuItem(
+                "Next channel",
+                self._next_channel,
+                enabled=lambda _: not self.app.hook.paused,
+            ),
+            pystray.MenuItem(
                 "Pause",
                 self._toggle_pause,
                 checked=lambda _: self.app.hook.paused,
             ),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem(
+                "Preserve media play/pause",
+                self._toggle_media_play_pause,
+                checked=lambda _: self.app.config.preserve_media_play_pause,
+            ),
             pystray.MenuItem(
                 "Include Master channel",
                 self._toggle_master,
@@ -91,6 +101,15 @@ class Tray:
             pystray.Menu.SEPARATOR,
             pystray.MenuItem("Quit", self._quit),
         )
+
+    def _next_channel(self, icon, item) -> None:
+        self.app.next_channel()
+
+    def _toggle_media_play_pause(self, icon, item) -> None:
+        self.app.update_config(
+            preserve_media_play_pause=not self.app.config.preserve_media_play_pause,
+        )
+        self.refresh_tooltip()
 
     def _toggle_master(self, icon, item) -> None:
         self.app.update_config(include_master=not self.app.config.include_master)

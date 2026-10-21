@@ -6,8 +6,9 @@ Cycle order (Master only with config.include_master):
                   config.include_streaming each channel takes two positions,
                   monitoring then streaming (Game Monitor, Game Stream, ...)
 
-Buttons: roller turn = volume, media button = next position (and pop Sonar's
-on-screen overlay for it), roller press = mute toggle for the position.
+Buttons: roller turn = volume, media button = next position (Shift + media
+button when preserving play/pause), roller press = mute toggle for the position.
+Cycling also pops Sonar's on-screen overlay for the selected position.
 """
 from __future__ import annotations
 
@@ -107,9 +108,10 @@ class App:
         self.hook = MediaHook(
             on_volume_up=self._on_volume_up,
             on_volume_down=self._on_volume_down,
-            on_media_button=self._on_media_button,
+            on_media_button=self.next_channel,
             on_mute_button=self._on_mute_button,
             suppress=True,
+            preserve_media_play_pause=self.config.preserve_media_play_pause,
         )
 
     def _notify(self) -> None:
@@ -120,12 +122,13 @@ class App:
                 log.exception("state-change callback failed")
 
     def update_config(self, **changes: bool) -> None:
-        """Apply config changes, persist, rebuild the cycle. Cursor snaps to the
-        closest matching position (same channel+slider, then same channel)."""
+        """Apply and persist settings, update the hook, and rebuild the cycle.
+        Cursor snaps to the closest position (same channel+slider, then channel)."""
         with self._lock:
             for k, v in changes.items():
                 setattr(self.config, k, v)
             self.config.save()
+            self.hook.preserve_media_play_pause = self.config.preserve_media_play_pause
             old = self.positions[self.idx] if self.positions else None
             self.positions = build_positions(
                 self.sonar.mode,
@@ -155,7 +158,7 @@ class App:
         log.info("config updated: %s; cycle now %d positions starting at %s",
                  changes, len(self.positions), self.positions[self.idx].label)
 
-    # --- callbacks (run on hook-worker thread) -------------------------------
+    # --- actions (run on hook-worker or tray thread) --------------------------
     def _on_volume_up(self) -> None:
         with self._lock:
             self.volume = min(1.0, self.volume + VOLUME_STEP)
@@ -166,7 +169,8 @@ class App:
             self.volume = max(0.0, self.volume - VOLUME_STEP)
             self._apply()
 
-    def _on_media_button(self) -> None:
+    def next_channel(self) -> None:
+        """Select the next cycle position and refresh Sonar, OLED, and tray."""
         with self._lock:
             self.idx = (self.idx + 1) % len(self.positions)
             self.volume = self._read_current()

@@ -23,6 +23,10 @@ class Config:
     # of the broadcast feed.
     include_streaming: bool = False
 
+    # Leave plain media-button presses to Windows; use Shift + media button
+    # to cycle Sonar channels instead. Off by default for existing users.
+    preserve_media_play_pause: bool = False
+
     @classmethod
     def load(cls) -> "Config":
         p = config_path()

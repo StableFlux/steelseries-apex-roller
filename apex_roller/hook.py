@@ -24,6 +24,7 @@ WM_SYSKEYDOWN = 0x0104
 WM_SYSKEYUP = 0x0105
 WM_QUIT = 0x0012
 
+VK_SHIFT = 0x10
 VK_VOLUME_MUTE = 0xAD
 VK_VOLUME_DOWN = 0xAE
 VK_VOLUME_UP = 0xAF
@@ -60,6 +61,8 @@ _user32.UnhookWindowsHookEx.restype = wt.BOOL
 _user32.UnhookWindowsHookEx.argtypes = [wt.HHOOK]
 _user32.GetMessageW.argtypes = [ctypes.POINTER(wt.MSG), wt.HWND, wt.UINT, wt.UINT]
 _user32.PostThreadMessageW.argtypes = [wt.DWORD, wt.UINT, wt.WPARAM, wt.LPARAM]
+_user32.GetAsyncKeyState.restype = wt.SHORT
+_user32.GetAsyncKeyState.argtypes = [ctypes.c_int]
 _kernel32.GetCurrentThreadId.restype = wt.DWORD
 
 
@@ -73,6 +76,7 @@ class MediaHook:
         *,
         suppress: bool = True,
         injected_only: bool = True,
+        preserve_media_play_pause: bool = False,
     ):
         self._cb_up = on_volume_up
         self._cb_down = on_volume_down
@@ -80,6 +84,7 @@ class MediaHook:
         self._cb_mute = on_mute_button
         self.suppress = suppress
         self.injected_only = injected_only
+        self.preserve_media_play_pause = preserve_media_play_pause
         self.paused = False
 
         self._handle: int | None = None
@@ -131,7 +136,9 @@ class MediaHook:
             elif vk == VK_VOLUME_DOWN and self._cb_down is not None:
                 self._actions.put("vol_down")
                 handled = True
-            elif vk == VK_MEDIA_PLAY_PAUSE and self._cb_media is not None:
+            elif (vk == VK_MEDIA_PLAY_PAUSE and self._cb_media is not None
+                  and (not self.preserve_media_play_pause
+                       or _user32.GetAsyncKeyState(VK_SHIFT) & 0x8000)):
                 self._actions.put("media")
                 handled = True
             elif vk == VK_VOLUME_MUTE and self._cb_mute is not None:

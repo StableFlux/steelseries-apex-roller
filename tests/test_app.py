@@ -5,6 +5,7 @@ import pytest
 
 from apex_roller.app import App, format_level
 from apex_roller.config import Config
+from apex_roller.tray import Tray
 
 
 class FakeSonar:
@@ -94,7 +95,7 @@ def test_format_level_muted_keeps_percent_and_width():
 def test_media_button_resends_current_volume_for_overlay(make_app):
     app = make_app()
     app.sonar.volumes[("chatRender", "monitoring")] = 0.4
-    app._on_media_button()  # Game Monitor -> Chat Monitor
+    app.next_channel()  # Game Monitor -> Chat Monitor
     assert app.position.label == "Chat Monitor"
     assert app.gg_ws.sent[-1] == ("MONITOR_CHAT_VOLUME", 40.0)
     # Re-sending the current value must not write to the audio engine.
@@ -103,7 +104,7 @@ def test_media_button_resends_current_volume_for_overlay(make_app):
 
 def test_media_button_classic_mode_sends_nothing(make_app):
     app = make_app(mode="classic")
-    app._on_media_button()
+    app.next_channel()
     assert app.gg_ws.sent == []
 
 
@@ -142,6 +143,60 @@ def test_rolling_while_muted_stays_muted(make_app):
 def test_cycling_reads_mute_state_of_new_position(make_app):
     app = make_app()
     app.sonar.muted[("chatRender", "monitoring")] = True
-    app._on_media_button()
+    app.next_channel()
     assert app.muted is True
     assert app.gs.frames[-1] == ("Chat Monitor", "[ MUTED  ]  50%")
+
+
+# --- playback preservation and tray controls ------------------------------------
+
+@pytest.mark.parametrize("enabled", [False, True])
+def test_play_pause_setting_applies_immediately_and_persists(make_app, monkeypatch, tmp_path, enabled):
+    monkeypatch.setattr("apex_roller.config.config_path", lambda: tmp_path / "config.json")
+    app = make_app(preserve_media_play_pause=not enabled)
+    assert app.hook.preserve_media_play_pause is not enabled
+    app.next_channel()
+    position = app.position
+
+    app.update_config(preserve_media_play_pause=enabled)
+
+    assert app.hook.preserve_media_play_pause is enabled
+    assert Config.load().preserve_media_play_pause is enabled
+    assert app.position == position
+
+
+def test_tray_playback_toggle_and_next_channel(make_app, monkeypatch, tmp_path):
+    monkeypatch.setattr("apex_roller.config.config_path", lambda: tmp_path / "config.json")
+    app = make_app()
+    tray = Tray.__new__(Tray)  # Exercise real menu actions without creating an icon.
+    tray.app = app
+    monkeypatch.setattr(tray, "refresh_tooltip", lambda: None)
+    items = {item.text: item for item in tray._build_menu()}
+    toggle = items["Preserve media play/pause"]
+    next_channel = items["Next channel"]
+
+    assert toggle.checked is False
+    toggle(None)
+    assert toggle.checked is True
+    assert app.hook.preserve_media_play_pause is True
+    assert Config.load().preserve_media_play_pause is True
+
+    assert next_channel.enabled is True
+    next_channel(None)
+    assert app.position.label == "Chat Monitor"
+    assert app.gg_ws.sent[-1] == ("MONITOR_CHAT_VOLUME", 50.0)
+
+    app.hook.paused = True
+    assert next_channel.enabled is False
+
+
+def test_existing_config_keeps_media_button_behavior(monkeypatch, tmp_path):
+    path = tmp_path / "config.json"
+    path.write_text('{"include_master": true, "include_streaming": true}', encoding="utf-8")
+    monkeypatch.setattr("apex_roller.config.config_path", lambda: path)
+
+    config = Config.load()
+
+    assert config.preserve_media_play_pause is False
+    assert config.include_master is True
+    assert config.include_streaming is True

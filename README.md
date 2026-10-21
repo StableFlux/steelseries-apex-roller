@@ -43,6 +43,9 @@ This app sits between the keyboard and Windows:
   Both off by default; choices persist across launches.
   Each press also pops **Sonar's on-screen overlay** for the newly selected
   channel, so you can see what the roller is about to control.
+  Enable *Preserve media play/pause* in the tray menu to keep normal playback
+  control on the media button and use **Shift + media button** to cycle instead.
+  You can also select **Next channel** from the tray menu.
 - **Roller up/down** adjusts the active channel's volume.
 - **Roller press** mutes / unmutes the active channel (only that slider —
   in Streamer mode, monitoring and streaming mute independently). Rolling
@@ -80,8 +83,13 @@ Per-user config and logs live in `%LocalAppData%\ApexRoller\`.
 
 ## Tray menu
 
+- **Next channel** — cycles to the next Sonar channel/slider and shows its
+  overlay. Disabled while paused.
 - **Pause** — temporarily passes roller/media events through to Windows
   (master volume, mute and media play/pause behave normally).
+- **Preserve media play/pause** — leaves normal media-button presses to Windows
+  for playback control; **Shift + media button** cycles channels instead.
+  Off by default; the choice persists across launches.
 - **Include Master channel** — adds Sonar's Master entry to the cycle.
   Off by default.
 - **Include Streaming sliders** — each channel becomes two cycle positions
